@@ -11,8 +11,8 @@ app.post(`/signup`, async (req, res) => {
 
   const postData = posts
     ? posts.map((post) => {
-        return { title: post.title, content: post.content || undefined }
-      })
+      return { title: post.title, content: post.content || undefined }
+    })
     : []
 
   const result = await prisma.user.create({
@@ -37,6 +37,24 @@ app.post(`/post`, async (req, res) => {
     },
   })
   res.json(result)
+})
+
+app.post('/user/:id/profile', async (req, res) => {
+  const { id } = req.params
+  const { bio } = req.body
+
+  const profile = await prisma.profile.create({
+    data: {
+      bio,
+      user: {
+        connect: {
+          id: Number(id)
+        }
+      }
+    }
+  })
+
+  res.send(profile)
 })
 
 app.put('/post/:id/views', async (req, res) => {
@@ -124,11 +142,11 @@ app.get('/feed', async (req, res) => {
 
   const or = searchString
     ? {
-        OR: [
-          { title: { contains: searchString } },
-          { content: { contains: searchString } },
-        ],
-      }
+      OR: [
+        { title: { contains: searchString } },
+        { content: { contains: searchString } },
+      ],
+    }
     : {}
 
   const posts = await prisma.post.findMany({
